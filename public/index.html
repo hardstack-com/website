@@ -44,6 +44,7 @@
 
   body {
     margin: 0;
+    position: relative;
     min-height: 100svh;
     background-color: var(--substrate);
     /* fab grid: via drill marks on the substrate */
@@ -59,7 +60,7 @@
 
   /* --- board outline + mounting holes ------------------------------------ */
   .board {
-    position: fixed;
+    position: absolute;
     inset: var(--edge);
     border: 1px solid rgba(201, 139, 75, 0.28);
     border-radius: 4px;
@@ -107,7 +108,7 @@
   main {
     flex: 1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
     align-items: center;
     gap: clamp(36px, 6vw, 80px);
   }
@@ -116,7 +117,7 @@
 
   h1 {
     margin: 0;
-    font-size: clamp(2.9rem, 8.2vw, 5.3rem);
+    font-size: clamp(2.9rem, 6.6vw, 5rem);
     font-variation-settings: "wdth" 118, "wght" 760;
     line-height: 0.94;
     letter-spacing: -0.035em;

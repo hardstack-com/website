@@ -45,18 +45,23 @@ edit permission).
 
 ## Regenerating og.png
 
-`og.png` is a screenshot of the page itself at 1200x630, palette-reduced to
-keep it under 30 KB:
+`og.png` is a screenshot of the page itself at 1200x630, with the dot grid and
+the travelling pulse hidden (both only add noise at card size and cost a lot of
+bytes), then palette-reduced to 12 colours to stay around 15 KB:
+
+```js
+// in DevTools, with the page open at 1200x630
+document.head.insertAdjacentHTML("beforeend",
+  "<style>body{background-image:none!important}.loop .pulse{display:none!important}</style>");
+```
 
 ```sh
-cd public && python3 -m http.server 8787 &
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  --headless --disable-gpu --hide-scrollbars \
-  --window-size=1200,630 --virtual-time-budget=8000 \
-  --screenshot=/tmp/og-raw.png http://localhost:8787/
-magick /tmp/og-raw.png -resize 1200x630^ -gravity center -extent 1200x630 \
-  -colors 128 -dither FloydSteinberg -strip PNG8:public/og.png
+magick og-raw.png -resize 1200x630^ -gravity center -extent 1200x630 \
+  -colors 12 -strip PNG8:public/og.png
 ```
+
+Keep it at 12 colours or above — below that, quantisation breaks the 1px board
+outline and trace into dashes.
 
 ## Design notes
 
