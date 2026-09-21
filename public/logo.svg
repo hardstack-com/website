@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="HardStack">
+  <title>HardStack</title>
+  <mask id="barrel">
+    <rect width="64" height="64" fill="#fff"/>
+    <rect x="41" y="12" width="6" height="40" rx="3" fill="#000"/>
+  </mask>
+  <g mask="url(#barrel)">
+    <rect x="9" y="12" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+    <rect x="9" y="27.5" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+    <rect x="9" y="43" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+    <rect x="37" y="8" width="14" height="48" rx="7" fill="#C98B4B"/>
+  </g>
+</svg>

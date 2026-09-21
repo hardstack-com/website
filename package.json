@@ -1,0 +1,15 @@
+{
+  "name": "hardstack-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HardStack coming-soon landing page",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.42.0"
+  }
+}

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HardStack — hardware-in-the-loop testing</title>
+<meta name="description" content="HardStack is test infrastructure that puts real boards in your CI pipeline. Coming soon.">
+<meta name="theme-color" content="#0A2226">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="canonical" href="https://hardstack.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hardstack.com/">
+<meta property="og:site_name" content="HardStack">
+<meta property="og:title" content="HardStack — hardware-in-the-loop testing">
+<meta property="og:description" content="Test infrastructure that puts real boards in your CI pipeline. Coming soon.">
+<meta property="og:image" content="https://hardstack.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HardStack — hardware-in-the-loop testing">
+<meta name="twitter:description" content="Test infrastructure that puts real boards in your CI pipeline. Coming soon.">
+<meta name="twitter:image" content="https://hardstack.com/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --substrate: #0A2226;
+    --substrate-raised: #0F2E33;
+    --copper: #C98B4B;
+    --copper-dim: #8A6338;
+    --silkscreen: #E6EDE9;
+    --silkscreen-dim: #92A8A6;
+    --signal: #A8E8F0;
+    --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --edge: clamp(20px, 3.5vw, 44px);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background-color: var(--substrate);
+    /* fab grid: via drill marks on the substrate */
+    background-image: radial-gradient(circle at center, rgba(201, 139, 75, 0.11) 1px, transparent 1.2px);
+    background-size: 28px 28px;
+    color: var(--silkscreen);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- board outline + mounting holes ------------------------------------ */
+  .board {
+    position: fixed;
+    inset: var(--edge);
+    border: 1px solid rgba(201, 139, 75, 0.28);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .board i {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 139, 75, 0.5);
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .board i:nth-child(1) { top: 13px; left: 13px; }
+  .board i:nth-child(2) { top: 13px; right: 13px; }
+  .board i:nth-child(3) { bottom: 13px; left: 13px; }
+  .board i:nth-child(4) { bottom: 13px; right: 13px; }
+
+  /* --- page frame -------------------------------------------------------- */
+  .sheet {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--edge) + 34px) calc(var(--edge) + 34px) calc(var(--edge) + 22px);
+    gap: clamp(40px, 7vh, 76px);
+  }
+
+  /* --- wordmark ---------------------------------------------------------- */
+  .mark {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .mark svg { width: 27px; height: 27px; display: block; flex: none; }
+  .mark span {
+    font-variation-settings: "wdth" 112, "wght" 680;
+    font-size: 1.24rem;
+    letter-spacing: -0.005em;
+  }
+
+  /* --- main layout ------------------------------------------------------- */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+    align-items: center;
+    gap: clamp(36px, 6vw, 80px);
+  }
+
+  main > * { min-width: 0; }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.9rem, 8.2vw, 5.3rem);
+    font-variation-settings: "wdth" 118, "wght" 760;
+    line-height: 0.94;
+    letter-spacing: -0.035em;
+    max-width: 11ch;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 1.15em 0 0;
+    max-width: 36ch;
+    font-size: 1.16rem;
+    line-height: 1.55;
+    color: var(--silkscreen-dim);
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: clamp(30px, 5vh, 46px) 0 0;
+    font-family: var(--mono);
+    font-size: 1.02rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--copper);
+  }
+  .status::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    flex: none;
+    border-radius: 2px;
+    background: var(--copper);
+    box-shadow: 0 0 12px rgba(201, 139, 75, 0.85);
+  }
+
+  .contact {
+    margin: 26px 0 0;
+    font-size: 1.05rem;
+    color: var(--silkscreen-dim);
+  }
+  .contact a {
+    color: var(--silkscreen);
+    text-decoration: none;
+    /* soldered joint: a copper trace under the link */
+    border-bottom: 1px solid var(--copper);
+    padding-bottom: 2px;
+    transition: color 0.18s ease, border-color 0.18s ease;
+  }
+  .contact a:hover { color: var(--copper); }
+  .contact a:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* --- loop diagram ------------------------------------------------------ */
+  .loop { width: 100%; height: auto; max-width: 620px; margin-inline-start: auto; display: block; }
+  .loop .trace { fill: none; stroke: var(--copper); stroke-width: 2; opacity: 0.55; }
+  .loop .pulse {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 48 952;
+    filter: url(#glow);
+    animation: travel 4.2s linear infinite;
+  }
+  @keyframes travel { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+  .loop .arrow { fill: var(--copper); opacity: 0.8; }
+  .loop .node { fill: var(--substrate-raised); stroke: var(--copper); stroke-width: 1.25; }
+  .loop .designator {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    fill: var(--silkscreen);
+  }
+  .loop .caption {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    fill: var(--silkscreen-dim);
+  }
+  .loop .seg {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    fill: var(--copper);
+    opacity: 0.95;
+  }
+
+  /* --- footer ------------------------------------------------------------ */
+  footer {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--copper-dim);
+    text-align: right;
+    padding-right: 12px;
+  }
+
+  /* --- responsive -------------------------------------------------------- */
+  @media (max-width: 880px) {
+    main {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: clamp(40px, 9vw, 60px);
+    }
+    .loop { margin-inline: 0; max-width: 500px; }
+    footer { text-align: left; padding-right: 0; }
+  }
+
+  @media (max-width: 560px) {
+    :root { --edge: 14px; }
+    body { font-size: 16px; }
+    .sheet { padding: calc(var(--edge) + 24px) calc(var(--edge) + 18px) calc(var(--edge) + 18px); }
+    h1 { font-size: clamp(2.35rem, 11vw, 3.2rem); max-width: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loop .pulse { animation: none; stroke-dashoffset: 620; }
+    * { transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="board" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<div class="sheet">
+
+  <div class="mark">
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <mask id="barrel">
+        <rect width="64" height="64" fill="#fff"/>
+        <rect x="41" y="12" width="6" height="40" rx="3" fill="#000"/>
+      </mask>
+      <g mask="url(#barrel)">
+        <rect x="9" y="12" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+        <rect x="9" y="27.5" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+        <rect x="9" y="43" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+        <rect x="37" y="8" width="14" height="48" rx="7" fill="#C98B4B"/>
+      </g>
+    </svg>
+    <span>HardStack</span>
+  </div>
+
+  <main>
+    <div>
+      <h1>Hardware in the loop.</h1>
+      <p class="lede">Test infrastructure that puts real boards in your CI pipeline, so firmware is checked against the silicon it ships on.</p>
+      <p class="status">Coming soon</p>
+      <p class="contact">Say hello: <a href="mailto:info@hardstack.com">info@hardstack.com</a></p>
+    </div>
+
+    <div>
+      <svg class="loop" viewBox="0 0 520 380" role="img" aria-label="A closed test loop: a test runner sends stimulus to a device under test, which returns measurements.">
+        <defs>
+          <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- routed trace, 45-degree mitres like a real board -->
+        <path class="trace" pathLength="1000"
+              d="M 96 90 L 424 90 L 450 116 L 450 274 L 424 300 L 96 300 L 70 274 L 70 116 Z"/>
+        <path class="pulse" pathLength="1000"
+              d="M 96 90 L 424 90 L 450 116 L 450 274 L 424 300 L 96 300 L 70 274 L 70 116 Z"/>
+
+        <polygon class="arrow" points="252,83 266,90 252,97"/>
+        <polygon class="arrow" points="268,293 254,300 268,307"/>
+
+        <text class="seg" x="260" y="70" text-anchor="middle">stimulus</text>
+        <text class="seg" x="260" y="326" text-anchor="middle">measurement</text>
+
+        <rect class="node" x="14" y="160" width="112" height="70" rx="3"/>
+        <text class="designator" x="70" y="192" text-anchor="middle">HOST</text>
+        <text class="caption" x="70" y="211" text-anchor="middle">test runner</text>
+
+        <rect class="node" x="394" y="160" width="112" height="70" rx="3"/>
+        <text class="designator" x="450" y="192" text-anchor="middle">DUT</text>
+        <text class="caption" x="450" y="211" text-anchor="middle">your board</text>
+      </svg>
+    </div>
+  </main>
+
+  <footer>rev 0.1</footer>
+
+</div>
+
+</body>
+</html>
