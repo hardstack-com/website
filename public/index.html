@@ -185,7 +185,9 @@
     align-items: center;
     gap: 26px;
   }
-  .rail nav a {
+  /* :not(.btn) matters — this selector outranks .btn, so without it the
+     muted link colour lands on the Order button and drops it to 1.15:1. */
+  .rail nav a:not(.btn) {
     font-family: var(--mono);
     font-size: 0.83rem;
     letter-spacing: 0.08em;
@@ -194,7 +196,7 @@
     text-decoration: none;
     transition: color 0.16s ease;
   }
-  .rail nav a:hover { color: var(--silkscreen); }
+  .rail nav a:not(.btn):hover { color: var(--silkscreen); }
 
   /* --- hero -------------------------------------------------------------- */
   .hero { position: relative; padding-block: clamp(46px, 7vw, 86px) clamp(52px, 8vw, 96px); }
@@ -971,7 +973,7 @@
 
 <footer>
   <div class="wrap">
-    <span class="tm">HardStack&trade; is a trademark of HardStack. &copy; 2026 HardStack.</span>
+    <span class="tm">HardStack&trade; is a trademark of Alpha21, LLC. &copy; 2026 Alpha21, LLC.</span>
     <a href="mailto:orders@hardstack.com">orders@hardstack.com</a>
     <span>rev 1.0</span>
   </div>

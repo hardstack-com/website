@@ -165,7 +165,9 @@ empty cells in a grid whose gaps are drawn as hairlines.
 ## Trademark
 
 The page is also the specimen of use supporting the HardStack trademark
-application (Class 42). For that it has to keep showing, together and on one
+application (Class 42). The mark is owned by **Alpha21, LLC**, which is the
+applicant of record — the footer attribution has to name Alpha21, LLC and not
+HardStack, or it contradicts the filing. For that it has to keep showing, together and on one
 screen: the HardStack mark, a description of the services, and a direct way to
 order them. Do not reintroduce "coming soon" wording, and do not remove the
 order form or the pricing, without checking against the filing first.
