@@ -6,6 +6,15 @@
   "compatibility_date": "2025-09-01",
   "workers_dev": false,
   "observability": { "enabled": true },
+  // Email Sending is onboarded on the send.hardstack.com subdomain, so the
+  // apex MX/SPF/DKIM that carry Google Workspace mail stay untouched. The
+  // From address must sit on that subdomain for DKIM to align; Reply-To is
+  // the real Workspace mailbox, so replies land where a human reads them.
+  "send_email": [{ "name": "EMAIL" }],
+  "vars": {
+    "ORDERS_TO": "orders@hardstack.com",
+    "ORDERS_FROM": "orders@send.hardstack.com"
+  },
   "routes": [
     { "pattern": "hardstack.com", "custom_domain": true },
     { "pattern": "www.hardstack.com", "custom_domain": true }

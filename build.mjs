@@ -69,10 +69,123 @@ const PLANS = {
   "agent-integration": "Service: AI agent integration - $1,600/day",
 };
 
-// Orders are the one thing on this site we cannot afford to drop, so a bad
-// forward is logged loudly rather than swallowed, and the customer still gets
-// their confirmation page either way.
-async function placeOrder(request, env) {
+// User-supplied text lands in an HTML mail body, so it has to be escaped.
+function esc(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function addressOf(value) {
+  return typeof value === "string" ? value : value.email;
+}
+
+// Two messages per order: one to us, one to the customer. The notification
+// sets Reply-To to the customer so answering it starts the conversation, and
+// the confirmation sets Reply-To to the orders mailbox for the same reason.
+function orderEmails(order, env) {
+  const inbox = env.ORDERS_TO || "orders@hardstack.com";
+  const from = { email: env.ORDERS_FROM || "orders@send.hardstack.com", name: "HardStack" };
+  const item = order.planLabel.replace(/^(Subscription|Service): /, "");
+
+  const detail = [
+    "Ordering:  " + order.planLabel,
+    "Name:      " + order.name,
+    "Email:     " + order.email,
+    "Company:   " + order.company,
+    "Benches:   " + (order.benches || "-"),
+    "Received:  " + order.receivedAt,
+    "Country:   " + (order.country || "-"),
+    "",
+    "What we are working on:",
+    order.hardware || "(not given)",
+  ].join("\\n");
+
+  const notify = {
+    from,
+    to: inbox,
+    replyTo: { email: order.email, name: order.name },
+    subject: "New order: " + item + " - " + order.company,
+    text: detail,
+    html: '<pre style="font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace">' + esc(detail) + "</pre>",
+  };
+
+  const greeting = "Hi " + order.name + ",";
+  const body = [
+    "Thank you for your order. Here is what we have:",
+    "",
+    "    " + order.planLabel,
+    "    for " + order.company,
+    "",
+    "A person will confirm it within one business day. Nothing is charged",
+    "until your bench is live or your statement of work is signed.",
+    "",
+    "If anything above is wrong, just reply to this email.",
+    "",
+    "-- HardStack",
+    "https://hardstack.com",
+  ].join("\\n");
+
+  const confirm = {
+    from,
+    to: { email: order.email, name: order.name },
+    replyTo: inbox,
+    subject: "Your HardStack order",
+    text: greeting + "\\n\\n" + body,
+    html:
+      '<div style="font:15px/1.6 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#13282b">' +
+      "<p>" + esc(greeting) + "</p>" +
+      "<p>Thank you for your order. Here is what we have:</p>" +
+      '<p style="padding:12px 16px;border-left:3px solid #C98B4B;background:#F4F1EC">' +
+      "<strong>" + esc(order.planLabel) + "</strong><br>for " + esc(order.company) +
+      "</p>" +
+      "<p>A person will confirm it within one business day. Nothing is charged until your " +
+      "bench is live or your statement of work is signed.</p>" +
+      "<p>If anything above is wrong, just reply to this email.</p>" +
+      '<p style="color:#6b7f7d">&mdash; HardStack<br>' +
+      '<a href="https://hardstack.com" style="color:#8A6338">hardstack.com</a></p>' +
+      "</div>",
+  };
+
+  return [notify, confirm];
+}
+
+// Runs in waitUntil: the customer already has their confirmation page, so a
+// slow or failing destination must not hold up the redirect. Anything that
+// fails here is logged loudly, and the ORDER line above is the backstop.
+async function deliverOrder(order, env) {
+  if (env.EMAIL) {
+    for (const message of orderEmails(order, env)) {
+      const to = addressOf(message.to);
+      try {
+        const sent = await env.EMAIL.send(message);
+        console.log("ORDER_EMAIL_SENT to=" + to + " id=" + ((sent && sent.messageId) || "?"));
+      } catch (err) {
+        console.error("ORDER_EMAIL_FAILED to=" + to + " " + String(err));
+      }
+    }
+  } else {
+    console.error("ORDER_EMAIL_SKIPPED no EMAIL binding - order is only in this log");
+  }
+
+  // Optional second destination, for a Slack relay or a CRM.
+  if (env.ORDER_WEBHOOK_URL) {
+    try {
+      const res = await fetch(env.ORDER_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(order),
+      });
+      if (!res.ok) console.error("ORDER_FORWARD_FAILED status=" + res.status);
+    } catch (err) {
+      console.error("ORDER_FORWARD_ERROR " + String(err));
+    }
+  }
+}
+
+async function placeOrder(request, env, ctx) {
   let form;
   try {
     form = await request.formData();
@@ -118,23 +231,12 @@ async function placeOrder(request, env) {
     country: request.headers.get("cf-ipcountry") ?? null,
   };
 
-  // Always log it: the log is the backstop if the webhook is unset or down.
+  // Always log it: the log is the backstop if delivery fails entirely.
   console.log("ORDER " + JSON.stringify(record));
 
-  if (env && env.ORDER_WEBHOOK_URL) {
-    try {
-      const res = await fetch(env.ORDER_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(record),
-      });
-      if (!res.ok) console.error("ORDER_FORWARD_FAILED status=" + res.status);
-    } catch (err) {
-      console.error("ORDER_FORWARD_ERROR " + String(err));
-    }
-  } else {
-    console.error("ORDER_WEBHOOK_URL is not set - order exists only in this log");
-  }
+  const work = deliverOrder(record, env);
+  if (ctx && ctx.waitUntil) ctx.waitUntil(work);
+  else await work;
 
   return Response.redirect(new URL("/order-received", request.url).toString(), 303);
 }
@@ -148,7 +250,7 @@ function decode(file) {
 }
 
 export default {
-  fetch(request, env) {
+  fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // One canonical hostname, so the canonical tag and the URL agree.
@@ -158,7 +260,7 @@ export default {
     }
 
     if (url.pathname === "/order" && request.method === "POST") {
-      return placeOrder(request, env);
+      return placeOrder(request, env, ctx);
     }
 
     if (request.method !== "GET" && request.method !== "HEAD") {
