@@ -1,7 +1,9 @@
 # hardstack.com
 
 Marketing and ordering site for HardStack — remote, software-controlled
-electronics testbenches, sold as a monthly subscription plus metered bench time.
+electronics testbenches, sold as a monthly subscription plus metered bench time,
+alongside firmware, test-automation and bench-engineering services sold by the
+engineer-day.
 
 Live at **https://hardstack.com** (`www` 301s to the apex).
 
@@ -9,7 +11,7 @@ Live at **https://hardstack.com** (`www` 301s to the apex).
 
 ```
 public/               the site itself — edit this
-  index.html          the page: service, pricing and the order form
+  index.html          the page: platform, consulting, pricing, order form
   order-received.html post-order confirmation (303 target of /order)
   logo.svg            wordmark logo (PCB stackup with a plated through-hole)
   favicon.svg
@@ -62,12 +64,25 @@ The payload is:
 
 ## Prices
 
-Plan names and prices appear in three places and must agree, because the
-confirmation email is generated from the plan the Worker recorded:
+Everything orderable appears in the `<select>` in the order form and in the
+`PLANS` map in `build.mjs`, keyed by the same `value`. An order naming a key
+that is not in `PLANS` is rejected with a 400, so the two must be kept in step —
+adding a service means editing both.
 
-1. `public/index.html` — the pricing cards and the `<select>` in the order form
-2. `public/index.html` — the `From $299` line in the hero
-3. `build.mjs` — the `PLANS` map, which is what gets logged and forwarded
+Prices are written out in four places and must agree, because the confirmation
+email is generated from the label the Worker recorded:
+
+1. `public/index.html` — the pricing cards (`.plan`) for the subscriptions
+2. `public/index.html` — the rate table (`.bom`) for the services
+3. `public/index.html` — the `<select>` in the order form, and the `From $299`
+   line in the hero
+4. `build.mjs` — the `PLANS` map, which is what gets logged and forwarded
+
+```sh
+# every <option> should have a PLANS entry
+grep -o 'option value="[^"]*"' public/index.html
+grep -A9 'const PLANS' build.mjs
+```
 
 ## Develop
 
@@ -154,6 +169,10 @@ application (Class 42). For that it has to keep showing, together and on one
 screen: the HardStack mark, a description of the services, and a direct way to
 order them. Do not reintroduce "coming soon" wording, and do not remove the
 order form or the pricing, without checking against the filing first.
+
+The consulting section carries weight here out of proportion to its size:
+engineering services can be rendered on the day the application is filed, which
+is harder to argue for a subscription platform that is still being built.
 
 ## Contact
 

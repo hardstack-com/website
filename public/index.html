@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HardStack — remote electronics testbenches, operated over the API</title>
-<meta name="description" content="HardStack is a subscription service that gives engineers and AI agents remote control of real electronics benches: live bench video, firmware flashing, instrument orchestration and robotic actuators, over a web app and API. Plans from $299/month. Order online.">
+<meta name="description" content="HardStack is a subscription service that gives engineers and AI agents remote control of real electronics benches: live bench video, firmware flashing, instrument orchestration and robotic actuators, over a web app and API. Plans from $299/month, plus firmware, test-automation and bench-engineering services. Order online.">
 <meta name="theme-color" content="#0A2226">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/favicon.svg">
@@ -331,6 +331,8 @@
   /* --- service capabilities ---------------------------------------------- */
   section { padding-block: clamp(54px, 7vw, 92px); }
   section + section { border-top: 1px solid rgba(201, 139, 75, 0.16); }
+  /* Clear the sticky rail, so an anchor jump does not hide the eyebrow under it. */
+  section[id] { scroll-margin-top: 76px; }
 
   .caps {
     list-style: none;
@@ -445,8 +447,73 @@
     color: var(--silkscreen-dim);
   }
 
+  /* --- engineering services ---------------------------------------------- */
+  /* A bill-of-materials table rather than a third card grid: the page already
+     has two, and a line-item read is what a rate card actually is. */
+  .bom {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(201, 139, 75, 0.28);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .bom li {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) minmax(0, 15.5rem);
+    align-items: baseline;
+    gap: 4px 22px;
+    padding: 22px 24px;
+    background: var(--substrate-sunk);
+  }
+  .bom li + li { border-top: 1px solid rgba(201, 139, 75, 0.2); }
+  .bom .ref {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    color: var(--copper-dim);
+  }
+  .bom h3 {
+    margin: 0;
+    font-size: 1.04rem;
+    font-variation-settings: "wdth" 108, "wght" 650;
+    letter-spacing: -0.008em;
+  }
+  .bom p {
+    grid-column: 2;
+    margin: 6px 0 0;
+    color: var(--silkscreen-dim);
+    font-size: 0.96rem;
+    line-height: 1.5;
+  }
+  .bom .rate {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+    align-self: center;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--silkscreen);
+  }
+  .bom .rate small {
+    display: block;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    color: var(--copper-dim);
+    margin-top: 3px;
+  }
+
+  .bom-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 24px;
+    margin: 24px 0 0;
+  }
+  .bom-foot p { margin: 0; font-size: 0.93rem; color: var(--silkscreen-dim); max-width: 48ch; }
+
   /* --- order form -------------------------------------------------------- */
-  #order { scroll-margin-top: 70px; }
   .order-grid {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -509,6 +576,9 @@
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--signal); }
   input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--signal); outline-offset: 1px; }
   textarea { resize: vertical; min-height: 92px; }
+  option, optgroup { background: var(--substrate); color: var(--silkscreen); }
+  optgroup { font-family: var(--mono); font-size: 0.85rem; }
+
   select {
     appearance: none;
     background-image: linear-gradient(45deg, transparent 50%, var(--copper) 50%), linear-gradient(135deg, var(--copper) 50%, transparent 50%);
@@ -561,12 +631,29 @@
     .loop { margin-inline: 0; max-width: 520px; }
   }
 
+  @media (max-width: 820px) {
+    .bom li { grid-template-columns: 58px minmax(0, 1fr); }
+    .bom .rate {
+      grid-row: auto;
+      grid-column: 2;
+      text-align: left;
+      margin-top: 12px;
+    }
+    .bom .rate small { display: inline; margin: 0 0 0 8px; }
+  }
+
   @media (max-width: 620px) {
     .caps { grid-template-columns: minmax(0, 1fr); }
+    .bom li { grid-template-columns: minmax(0, 1fr); }
+    .bom .rate, .bom p { grid-column: 1; }
+  }
+
+  @media (max-width: 860px) {
+    .rail nav a[href="#service"] { display: none; }
   }
 
   @media (max-width: 700px) {
-    .rail nav a[href="#service"] { display: none; }
+    .rail nav a[href="#consulting"] { display: none; }
   }
 
   @media (max-width: 560px) {
@@ -607,7 +694,8 @@
       <span>HardStack</span>
     </a>
     <nav aria-label="Primary">
-      <a href="#service">Service</a>
+      <a href="#service">Platform</a>
+      <a href="#consulting">Consulting</a>
       <a href="#pricing">Pricing</a>
       <a class="btn btn--sm" href="#order">Order now</a>
     </nav>
@@ -760,18 +848,58 @@
   </div>
 </section>
 
+<section id="consulting">
+  <div class="wrap">
+    <p class="eyebrow">Engineering services</p>
+    <h2>Or have us do the work.</h2>
+    <p class="section-lede">HardStack engineers take on firmware, test and bench-automation work directly &mdash; on your own hardware, or on a HardStack bench we build and run for you. Engagements start at one week.</p>
+
+    <ul class="bom">
+      <li>
+        <span class="ref">SVC 1</span>
+        <h3>Firmware and driver development</h3>
+        <p>Board bring-up, peripheral drivers, RTOS integration and production firmware for ARM, RISC-V and Espressif targets.</p>
+        <span class="rate">$1,600 <small>per engineer-day</small></span>
+      </li>
+      <li>
+        <span class="ref">SVC 2</span>
+        <h3>Test automation and CI</h3>
+        <p>We write your hardware test suite and wire it into your pipeline, so every commit is checked against real silicon instead of a simulator.</p>
+        <span class="rate">$1,600 <small>per engineer-day</small></span>
+      </li>
+      <li>
+        <span class="ref">SVC 3</span>
+        <h3>Bench and fixture engineering</h3>
+        <p>We design and build the rig: instrumentation, probe fixtures, actuators and wiring, specified around your board and commissioned in our lab.</p>
+        <span class="rate">From $8,000 <small>per bench, fixed price</small></span>
+      </li>
+      <li>
+        <span class="ref">SVC 4</span>
+        <h3>AI agent integration</h3>
+        <p>We connect your agents to the bench &mdash; tool definitions, guardrails and evaluation harnesses &mdash; so they can run bring-up and triage regressions unattended.</p>
+        <span class="rate">$1,600 <small>per engineer-day</small></span>
+      </li>
+    </ul>
+
+    <div class="bom-foot">
+      <a class="btn" href="#order" data-plan="firmware">Hire an engineer</a>
+      <p>Billed monthly against a signed statement of work. Rates are for remote work; on-site is quoted separately.</p>
+    </div>
+  </div>
+</section>
+
 <section id="order">
   <div class="wrap">
     <div class="order-grid">
       <div class="order-aside">
         <p class="eyebrow">Order</p>
-        <h2>Start your HardStack bench.</h2>
-        <p>Place your order below and we will confirm your bench, send the hardware intake instructions and start your subscription. Most benches are provisioned within two business days of your board arriving.</p>
+        <h2>Start with HardStack.</h2>
+        <p>Order a bench subscription or an engineering engagement from the same form. We confirm by email within one business day &mdash; with hardware intake instructions for a subscription, or a scoped statement of work for a service.</p>
 
         <dl>
           <div>
             <dt>Order by email</dt>
-            <dd><a href="mailto:orders@hardstack.com?subject=HardStack%20bench%20order">orders@hardstack.com</a></dd>
+            <dd><a href="mailto:orders@hardstack.com?subject=HardStack%20order">orders@hardstack.com</a></dd>
           </div>
           <div>
             <dt>Questions before ordering</dt>
@@ -782,11 +910,19 @@
 
       <form method="post" action="/order">
         <div class="field">
-          <label for="plan">Plan <span class="req">*</span></label>
+          <label for="plan">What you are ordering <span class="req">*</span></label>
           <select id="plan" name="plan" required>
-            <option value="bench">Bench &mdash; $299/month + $6/bench-hour</option>
-            <option value="rack" selected>Rack &mdash; $1,200/month + $4/bench-hour</option>
-            <option value="dedicated">Dedicated lab &mdash; request a quote</option>
+            <optgroup label="Testbench subscription">
+              <option value="bench">Bench &mdash; $299/month + $6/bench-hour</option>
+              <option value="rack" selected>Rack &mdash; $1,200/month + $4/bench-hour</option>
+              <option value="dedicated">Dedicated lab &mdash; request a quote</option>
+            </optgroup>
+            <optgroup label="Engineering services">
+              <option value="firmware">Firmware and driver development &mdash; $1,600/day</option>
+              <option value="test-automation">Test automation and CI &mdash; $1,600/day</option>
+              <option value="bench-engineering">Bench and fixture engineering &mdash; from $8,000</option>
+              <option value="agent-integration">AI agent integration &mdash; $1,600/day</option>
+            </optgroup>
           </select>
         </div>
 
@@ -807,14 +943,14 @@
             <input id="company" name="company" type="text" autocomplete="organization" required>
           </div>
           <div>
-            <label for="benches">Benches</label>
+            <label for="benches">Benches (subscriptions)</label>
             <input id="benches" name="benches" type="number" min="1" max="24" step="1" value="1" inputmode="numeric">
           </div>
         </div>
 
         <div class="field">
-          <label for="hardware">What are we putting on the bench?</label>
-          <textarea id="hardware" name="hardware" placeholder="Board or dev kit, target MCU, debug interface, and the instruments you need."></textarea>
+          <label for="hardware">What are we working on?</label>
+          <textarea id="hardware" name="hardware" placeholder="Board or dev kit, target MCU and debug interface, the instruments you need &mdash; or the scope of the work."></textarea>
         </div>
 
         <div class="hp" aria-hidden="true">
@@ -824,7 +960,7 @@
 
         <div class="submit-row">
           <button class="btn" type="submit">Place order</button>
-          <p class="terms">We will email an order confirmation and your first invoice. No charge until your bench is live.</p>
+          <p class="terms">We will confirm your order by email within one business day. Nothing is charged until your bench is live or your statement of work is signed.</p>
         </div>
       </form>
     </div>

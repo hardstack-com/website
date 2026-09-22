@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hardstack-website",
+  "account_id": "694bc088aa1c6678b9586e4c11a7f800",
   "main": "dist/worker.js",
   "compatibility_date": "2025-09-01",
   "workers_dev": false,

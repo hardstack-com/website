@@ -56,10 +56,17 @@ const SECURITY_HEADERS = {
   "x-frame-options": "SAMEORIGIN",
 };
 
+// Every orderable thing on the page, keyed by the <option> value. An order for
+// something missing here is rejected, so this map and the <select> in
+// public/index.html have to be kept in step.
 const PLANS = {
-  bench: "Bench - $299/month + $6/bench-hour",
-  rack: "Rack - $1,200/month + $4/bench-hour",
-  dedicated: "Dedicated lab - quote requested",
+  bench: "Subscription: Bench - $299/month + $6/bench-hour",
+  rack: "Subscription: Rack - $1,200/month + $4/bench-hour",
+  dedicated: "Subscription: Dedicated lab - quote requested",
+  firmware: "Service: Firmware and driver development - $1,600/day",
+  "test-automation": "Service: Test automation and CI - $1,600/day",
+  "bench-engineering": "Service: Bench and fixture engineering - from $8,000",
+  "agent-integration": "Service: AI agent integration - $1,600/day",
 };
 
 // Orders are the one thing on this site we cannot afford to drop, so a bad
