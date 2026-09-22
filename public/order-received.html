@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order received — HardStack</title>
+<meta name="description" content="Your HardStack testbench order has been received.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A2226">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --substrate: #0A2226;
+    --substrate-sunk: #071A1D;
+    --copper: #C98B4B;
+    --copper-dim: #8A6338;
+    --silkscreen: #E6EDE9;
+    --silkscreen-dim: #92A8A6;
+    --signal: #A8E8F0;
+    --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --edge: clamp(20px, 3.5vw, 44px);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--substrate);
+    background-image: radial-gradient(circle at center, rgba(201, 139, 75, 0.11) 1px, transparent 1.2px);
+    background-size: 28px 28px;
+    color: var(--silkscreen);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  .board {
+    position: absolute;
+    inset: var(--edge);
+    border: 1px solid rgba(201, 139, 75, 0.28);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .board i {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 139, 75, 0.5);
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .board i:nth-child(1) { top: 13px; left: 13px; }
+  .board i:nth-child(2) { top: 13px; right: 13px; }
+  .board i:nth-child(3) { bottom: 13px; left: 13px; }
+  .board i:nth-child(4) { bottom: 13px; right: 13px; }
+
+  .sheet {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: calc(var(--edge) + 40px) calc(var(--edge) + 34px);
+    max-width: 760px;
+  }
+
+  .mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--silkscreen);
+    margin-bottom: clamp(36px, 7vh, 64px);
+  }
+  .mark svg { width: 26px; height: 26px; display: block; flex: none; }
+  .mark span {
+    font-variation-settings: "wdth" 112, "wght" 680;
+    font-size: 1.2rem;
+    letter-spacing: -0.005em;
+  }
+
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin: 0 0 16px;
+  }
+  .stamp::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--copper);
+    box-shadow: 0 0 12px rgba(201, 139, 75, 0.85);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.2rem, 5.4vw, 3.3rem);
+    font-variation-settings: "wdth" 114, "wght" 750;
+    line-height: 1;
+    letter-spacing: -0.032em;
+  }
+
+  p.body { margin: 1.1em 0 0; max-width: 48ch; color: var(--silkscreen-dim); font-size: 1.08rem; }
+  p.body a { color: var(--silkscreen); text-decoration: none; border-bottom: 1px solid var(--copper); }
+  p.body a:hover { color: var(--copper); }
+
+  ol {
+    margin: clamp(28px, 4vh, 40px) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 14px;
+    max-width: 52ch;
+    counter-reset: step;
+  }
+  ol li {
+    display: flex;
+    gap: 14px;
+    color: var(--silkscreen-dim);
+    line-height: 1.5;
+    counter-increment: step;
+  }
+  ol li::before {
+    content: counter(step);
+    flex: none;
+    width: 25px;
+    height: 25px;
+    margin-top: 2px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(201, 139, 75, 0.5);
+    border-radius: 2px;
+    background: var(--substrate-sunk);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--copper);
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: clamp(32px, 5vh, 48px);
+    padding: 12px 22px;
+    border: 1px solid rgba(201, 139, 75, 0.55);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--silkscreen);
+    text-decoration: none;
+    align-self: flex-start;
+    transition: background 0.16s ease, border-color 0.16s ease;
+  }
+  .back:hover { background: rgba(201, 139, 75, 0.12); border-color: var(--copper); }
+  .back:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 0 calc(var(--edge) + 34px) calc(var(--edge) + 24px);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--copper-dim);
+  }
+
+  @media (max-width: 560px) {
+    :root { --edge: 12px; }
+    body { font-size: 16px; }
+    .sheet { padding: calc(var(--edge) + 28px) calc(var(--edge) + 18px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="board" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<div class="sheet">
+  <a class="mark" href="/">
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <mask id="barrel">
+        <rect width="64" height="64" fill="#fff"/>
+        <rect x="41" y="12" width="6" height="40" rx="3" fill="#000"/>
+      </mask>
+      <g mask="url(#barrel)">
+        <rect x="9" y="12" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+        <rect x="9" y="27.5" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+        <rect x="9" y="43" width="46" height="9" rx="1.5" fill="#E6EDE9"/>
+        <rect x="37" y="8" width="14" height="48" rx="7" fill="#C98B4B"/>
+      </g>
+    </svg>
+    <span>HardStack</span>
+  </a>
+
+  <p class="stamp">Order received</p>
+  <h1>Your bench is queued.</h1>
+  <p class="body">Thank you for your order. A confirmation is on its way to the email address you gave us. If it has not arrived within an hour, write to <a href="mailto:orders@hardstack.com">orders@hardstack.com</a> and we will resend it.</p>
+
+  <ol>
+    <li>We confirm your plan and send hardware intake instructions, including the shipping label for your board.</li>
+    <li>Your board is racked, wired to the instruments and actuators, and photographed for your records.</li>
+    <li>You receive API credentials and a bench URL. Billing starts the day your bench goes live.</li>
+  </ol>
+
+  <a class="back" href="/">Back to hardstack.com</a>
+</div>
+
+<footer>HardStack&trade; is a trademark of HardStack. &copy; 2026 HardStack.</footer>
+
+</body>
+</html>

@@ -1,7 +1,8 @@
 // Inlines everything in public/ into a single Worker module at dist/worker.js.
-// The site is four small files, so embedding them beats a separate asset store:
-// one artifact to deploy, no cold lookups, and `npm run deploy` reproduces
-// byte-for-byte whatever is currently in public/.
+// The site is a handful of small files, so embedding them beats a separate asset
+// store: one artifact to deploy, no cold lookups, and `npm run deploy` reproduces
+// byte-for-byte whatever is currently in public/. The Worker also handles the
+// order form, which is the one dynamic thing on the site.
 import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join, extname } from "node:path";
@@ -55,6 +56,82 @@ const SECURITY_HEADERS = {
   "x-frame-options": "SAMEORIGIN",
 };
 
+const PLANS = {
+  bench: "Bench - $299/month + $6/bench-hour",
+  rack: "Rack - $1,200/month + $4/bench-hour",
+  dedicated: "Dedicated lab - quote requested",
+};
+
+// Orders are the one thing on this site we cannot afford to drop, so a bad
+// forward is logged loudly rather than swallowed, and the customer still gets
+// their confirmation page either way.
+async function placeOrder(request, env) {
+  let form;
+  try {
+    form = await request.formData();
+  } catch {
+    return new Response("Could not read the order form.", {
+      status: 400,
+      headers: { "content-type": "text/plain; charset=utf-8", ...SECURITY_HEADERS },
+    });
+  }
+
+  const field = (name, max) => String(form.get(name) ?? "").trim().slice(0, max);
+
+  // Honeypot: a real person never sees this input, so anything in it is a bot.
+  // Answer as if the order went through rather than telling the bot it failed.
+  if (field("fax", 80)) return Response.redirect(new URL("/order-received", request.url).toString(), 303);
+
+  const order = {
+    plan: field("plan", 40),
+    name: field("name", 120),
+    email: field("email", 200),
+    company: field("company", 160),
+    benches: field("benches", 4),
+    hardware: field("hardware", 2000),
+  };
+
+  const invalid =
+    !PLANS[order.plan] ||
+    !order.name ||
+    !order.company ||
+    !/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(order.email);
+
+  if (invalid) {
+    return new Response("That order is missing a plan, name, company or valid email address. Please go back and try again.", {
+      status: 400,
+      headers: { "content-type": "text/plain; charset=utf-8", ...SECURITY_HEADERS },
+    });
+  }
+
+  const record = {
+    ...order,
+    planLabel: PLANS[order.plan],
+    receivedAt: new Date().toISOString(),
+    country: request.headers.get("cf-ipcountry") ?? null,
+  };
+
+  // Always log it: the log is the backstop if the webhook is unset or down.
+  console.log("ORDER " + JSON.stringify(record));
+
+  if (env && env.ORDER_WEBHOOK_URL) {
+    try {
+      const res = await fetch(env.ORDER_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(record),
+      });
+      if (!res.ok) console.error("ORDER_FORWARD_FAILED status=" + res.status);
+    } catch (err) {
+      console.error("ORDER_FORWARD_ERROR " + String(err));
+    }
+  } else {
+    console.error("ORDER_WEBHOOK_URL is not set - order exists only in this log");
+  }
+
+  return Response.redirect(new URL("/order-received", request.url).toString(), 303);
+}
+
 function decode(file) {
   if (!file.b64) return file.body;
   const bin = atob(file.body);
@@ -64,13 +141,17 @@ function decode(file) {
 }
 
 export default {
-  fetch(request) {
+  fetch(request, env) {
     const url = new URL(request.url);
 
     // One canonical hostname, so the canonical tag and the URL agree.
     if (url.hostname === "www.hardstack.com") {
       url.hostname = "hardstack.com";
       return Response.redirect(url.toString(), 301);
+    }
+
+    if (url.pathname === "/order" && request.method === "POST") {
+      return placeOrder(request, env);
     }
 
     if (request.method !== "GET" && request.method !== "HEAD") {
@@ -83,6 +164,15 @@ export default {
     let path = url.pathname;
     if (path === "/" || path === "/index.html") path = "/index.html";
     else if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
+
+    // Pretty URLs: /order-received serves order-received.html.
+    if (!FILES[path] && !path.includes(".") && FILES[path + ".html"]) path += ".html";
+
+    // A GET to /order means someone reloaded or bookmarked the form target;
+    // send them to the form rather than a 404.
+    if (path === "/order") {
+      return Response.redirect(new URL("/#order", url).toString(), 303);
+    }
 
     const file = FILES[path];
     if (!file) {
